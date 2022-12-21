@@ -1,10 +1,8 @@
 package com.kevintian;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
+import java.io.BufferedInputStream; 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileInputStream; 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -14,11 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
-import net.lingala.zip4j.ZipFile;
+import org.springframework.web.bind.annotation.RequestMapping; 
 
 class Form {
 	int howMany;
@@ -60,66 +54,25 @@ public class MainController {
 			Form form = new Form();
 			validateInputs(req, errors, form);
 
-			if (errors.size() == 0) {
-				PwGenerator pwGen = new PwGenerator(form.lowerCaseOption, form.upperCaseOption, form.numberOption,
-						form.specialCharOption);
+			if (errors.size() == 0) { 
 
 				String path = this.servletContext.getRealPath("/") + "tmp\\" + req.getSession().getId();
-				File dir = new File(path);
-				dir.mkdir();
+				ZipFileGenerator zipGenerator = new ZipFileGenerator(path);
+				File zipFile = zipGenerator.generate(form.labels, form.lowerCaseOption, form.upperCaseOption, form.numberOption, form.specialCharOption, form.filePw);
 
-				File file = new File(path + "\\rs.txt");
-				file.createNewFile();
-
-				FileWriter fw = new FileWriter(file);
-				BufferedWriter bw = new BufferedWriter(fw);
-
-				for (int c = 0; c < form.howMany; c++) {
-					if (form.labels[c].equals("")) {
-						bw.write(pwGen.generate());
-					} else {
-						bw.write(form.labels[c].trim() + " => " + pwGen.generate());
-					}
-
-					if (c != (form.howMany - 1)) {
-						bw.write("\n\n");
-					}
-				}
-
-				bw.flush();
-				bw.close();
-
-				ZipParameters zipParameters = new ZipParameters();
-				zipParameters.setCompressionLevel(CompressionLevel.NORMAL);
-				zipParameters.setEncryptionMethod(EncryptionMethod.AES);
-				ZipFile zipFile = null;
-
-				if (form.filePw.equals("")) {
-					zipParameters.setEncryptFiles(false);
-					zipFile = new ZipFile(path + "\\rs.zip");
-				} else {
-					zipParameters.setEncryptFiles(true);
-					zipFile = new ZipFile(path + "\\rs.zip", form.filePw.toCharArray());
-				}
-
-				zipFile.addFile(file, zipParameters);
-				zipFile.close();
-
-				rsp.setHeader("Content-Disposition", "attachment; filename=\"" + zipFile.getFile().getName() + "\"");
-				rsp.setContentLength((int) zipFile.getFile().length());
+				rsp.setHeader("Content-Disposition", "attachment; filename=\"" + zipFile.getName() + "\"");
+				rsp.setContentLength((int) zipFile.length());
 				rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 				rsp.setHeader("Pragma", "no-cache");
 				rsp.setHeader("Expires", "0");
 
-				InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile.getFile()));
+				InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
 				FileCopyUtils.copy(inputStream, rsp.getOutputStream());
 
 				rsp.getOutputStream().flush();
 				inputStream.close();
-
-				file.delete();
-				zipFile.getFile().delete();
-				dir.delete();
+				
+				zipGenerator.cleanUp();
 
 				return null;
 			} else {
