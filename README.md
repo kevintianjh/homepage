@@ -4,7 +4,7 @@ My career homepage that lists my professional skills developed using Bootstrap. 
 
 <br/>
 
-<img src="hp-ss-1.png" style="width: 50%;" />
-<img src="hp-ss-3.png" style="width: 50%;" />
-<img src="hp-ss-4.png" style="width: 50%;" />
-<img src="hp-ss-5.png" style="width: 50%;" />
+<img src="hp-ss-1.png" style="width: 70%;" />
+<img src="hp-ss-3.png" style="width: 70%;" />
+<img src="hp-ss-4.png" style="width: 70%;" />
+<img src="hp-ss-5.png" style="width: 70%;" />
